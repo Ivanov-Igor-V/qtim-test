@@ -81,16 +81,8 @@
 <script lang="ts">
 import { _AsyncData } from 'nuxt/dist/app/composables/asyncData'
 import { FetchError } from 'ofetch'
+import { BlogDetails } from '~/types/Blog';
 
-
-interface BlogDetails {
-    id: number,
-    createdAt: string,
-    title: string,
-    preview: string,
-    image: string,
-    description: string
-}
 export default {
     async setup() {
         const route = useRoute();

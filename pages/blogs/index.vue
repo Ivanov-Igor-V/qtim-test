@@ -90,35 +90,42 @@
         </div>
     </div>
 </template>
-<script >
-export default {
+<script lang="ts">
+import { _AsyncData } from 'nuxt/dist/app/composables/asyncData'
+import { FetchError } from 'ofetch'
+import { BlogDetails } from '~/types/Blog';
 
+export default {
     async setup() {
         const { public: publicConfigField } = useRuntimeConfig();
-        const { data, error } = await useFetch(publicConfigField.apiBase)
+        const { data, error }: _AsyncData<BlogDetails[], FetchError<any> | null> = await useFetch(publicConfigField.apiBase)
 
-        const itemsOnPage = ref(6)
-        const numOfPages = computed(() => data ? Math.ceil(data.value.length / itemsOnPage.value) : 0)
-        const currentPage = ref(1)
-        const splittedArray = ref([])
+        const itemsOnPage = ref<number>(6)
+        const numOfPages = computed(() => data.value ? Math.ceil(data.value!.length / itemsOnPage.value) : 0)
+        const currentPage = ref<number>(1)
+        const splittedArray = ref<Array<BlogDetails[]>>([])
         const dataOfCurrentPage = computed(() => splittedArray.value[currentPage.value - 1])
 
-        const splitDataArray = (arr, chunkSize) => {
+        const splitDataArray = (arr: Array<BlogDetails>, chunkSize: number) => {
             for (let i = 0; i < arr.length; i += chunkSize) {
                 splittedArray.value.push(arr.slice(i, i + chunkSize));
             }
         }
 
-        const changePage = (e) => {
+        const changePage = (e: Event) => {
             e.preventDefault()
-            currentPage.value = +e.target.innerText
+            currentPage.value = +(e.target as HTMLElement).innerText
         }
 
         watchEffect(() => {
-            splitDataArray(data.value, 6)
+            if (!data.value) return
+            splitDataArray(data.value, itemsOnPage.value)
         })
 
-        return { data, error, numOfPages, currentPage, itemsOnPage, dataOfCurrentPage, changePage, splittedArray }
+        return {
+            data, error, numOfPages, currentPage, itemsOnPage,
+            dataOfCurrentPage, changePage, splittedArray
+        }
     },
 }
 </script>
